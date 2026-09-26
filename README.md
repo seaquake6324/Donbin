@@ -1,4 +1,4 @@
-# Donbin
+# Donbin 同频
 
 A Discord Music Bot connecting with YouTube and BiliBili.
 
