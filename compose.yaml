@@ -1,0 +1,11 @@
+services:
+  music-bot:
+    build: .
+    env_file: .env
+    environment:
+      WEB_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

@@ -1,0 +1,20 @@
+import 'dotenv/config';
+import { spawn } from 'node:child_process';
+import { MediaResolver } from './media.js';
+
+const input = process.argv[2] || 'BV1xx411c7mD';
+const seekSeconds = Number(process.argv[3] || '0');
+if (!Number.isInteger(seekSeconds) || seekSeconds < 0) throw new Error('可选进度须为非负整数秒。');
+const resolver = new MediaResolver(process.env.YTDLP_PATH || 'yt-dlp', process.env.YTDLP_COOKIES_PATH);
+const track = await resolver.resolve(input);
+console.log(`解析：${track.title} (${track.source}: ${track.id})`);
+const stream = await resolver.stream(track);
+const headers = { 'User-Agent': 'Mozilla/5.0', ...(track.source === 'bilibili' ? { Referer: 'https://www.bilibili.com/' } : {}), ...stream.headers };
+const headerArg = Object.entries(headers).map(([k, v]) => `${k}: ${v}\r\n`).join('');
+const ffmpeg = spawn(process.env.FFMPEG_PATH || 'ffmpeg', ['-hide_banner', '-loglevel', 'error', '-nostdin', '-rw_timeout', '15000000', '-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_on_network_error', '1', '-reconnect_delay_max', '5', '-headers', headerArg, ...(seekSeconds > 0 ? ['-ss', String(seekSeconds)] : []), '-i', stream.url, '-t', '3', '-vn', '-ac', '2', '-ar', '48000', '-f', 's16le', 'pipe:1'], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+let bytes = 0, error = '';
+ffmpeg.stdout.on('data', (chunk: Buffer) => { bytes += chunk.length; });
+ffmpeg.stderr.on('data', (chunk: Buffer) => { error += chunk.toString(); });
+const exitCode = await new Promise<number | null>((resolve, reject) => { ffmpeg.on('close', resolve); ffmpeg.on('error', reject); });
+if (exitCode !== 0 || bytes < 48_000 * 2 * 2) throw new Error(`FFmpeg 无有效 PCM 输出：code=${exitCode}, bytes=${bytes}, error=${error.slice(-1000)}`);
+console.log(`FFmpeg PCM：${bytes} bytes（从 ${seekSeconds} 秒处解码约 ${(bytes / 192000).toFixed(2)} 秒）`);

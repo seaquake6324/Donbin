@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f2f0e8">
+<title>同频 · 音乐控制</title>
+<style>
+
+:root{color-scheme:light;--paper:#f2f0e8;--ink:#202832;--muted:#697078;--line:#d6d8cf;--night:#0d1117;--panel:#161b22;--accent:#47d7ac;--blue:#2862dc;--error:#cf5144;font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;color:var(--ink);background:var(--paper)}
+*{box-sizing:border-box}body{margin:0;min-width:320px}button,input,select{font:inherit}button,a,input,select{-webkit-tap-highlight-color:transparent}h1,h2,p{margin:0}a{color:inherit}button,.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 15px;border:1px solid var(--line);border-radius:6px;background:transparent;color:inherit;cursor:pointer;text-decoration:none;transition:background .16s,border-color .16s,transform .16s;white-space:nowrap}button:hover:not(:disabled),.button:hover{background:#20283209;border-color:#7c858c}button:active:not(:disabled),.button:active{transform:translateY(1px)}button:disabled{opacity:.38;cursor:not-allowed}.primary{background:var(--blue)!important;border-color:var(--blue)!important;color:#fff!important;font-weight:600}.primary:hover:not(:disabled){background:#194cc0!important}.danger{color:var(--error)}:focus-visible{outline:3px solid #3184fa;outline-offset:4px}input:not([type=range]),select{width:100%;min-width:0;min-height:46px;padding:11px 12px;border:1px solid #b9bfb9;border-radius:6px;background:#ffffff40;color:var(--ink)}input::placeholder{color:#7b8084}label{display:block;font-size:12px;color:var(--muted);margin-bottom:9px}svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}[hidden]{display:none!important}
+.shell{max-width:1300px;padding:32px 44px 30px;margin:auto}header,.brand,.header-status,.section-heading,.row,.transport,.secondary-controls,.time-row,.footer{display:flex;align-items:center}header{justify-content:space-between;gap:16px;padding-bottom:25px;border-bottom:1px solid var(--ink);margin-bottom:28px}.brand{gap:13px}.brand-mark{display:grid;place-items:center;width:40px;height:40px;background:var(--ink);color:var(--paper);border-radius:3px}.brand-mark svg{width:25px;height:25px}h1{font-size:26px;font-weight:750;letter-spacing:.1em;line-height:1.1}.brand-sub{font-size:10px;letter-spacing:.06em;margin-top:7px;color:var(--muted)}.header-status{gap:7px;font-size:11px;color:var(--muted)}.dot{width:6px;height:6px;background:currentColor;border-radius:50%;flex-shrink:0}.online{color:#28755d}.offline{color:var(--error)}
+.identity{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:25px}.account{display:flex;align-items:center;gap:11px;min-width:0}.avatar{display:grid;place-items:center;flex-shrink:0;width:38px;height:38px;background:#dce6fa;color:#225ac8;border:1px solid #b6c9ea;border-radius:50%;font-size:15px;font-weight:700}.account-copy{min-width:0}.account-name{font-size:14px;font-weight:650;overflow-wrap:anywhere}.account-sub{display:flex;align-items:center;gap:10px;margin-top:4px;font-size:11px;color:var(--muted)}.logout{text-underline-offset:3px}.identity-actions{display:flex;align-items:center;gap:15px}.identity-actions button{font-size:12px}.pill{display:inline-flex;align-items:center;gap:7px;font-size:11px;white-space:nowrap}.pill[data-state=error]{color:#ffb6aa}.hint{font-size:12px;line-height:1.85;color:var(--muted)}
+.top-grid{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(260px,.85fr);gap:36px;align-items:stretch}.player{--line:#30363d;--muted:#8f9ba8;color:#f0f3f6;background:var(--night);border:1px solid #272f39;border-radius:10px;padding:25px 30px 20px;overflow:hidden;position:relative}.section-heading{justify-content:space-between;gap:14px;margin-bottom:22px}.eyebrow{font-size:11px;letter-spacing:.12em;color:var(--muted)}.player .eyebrow{color:#a5afb9}.player .pill{color:var(--accent)}.track-layout{display:grid;grid-template-columns:minmax(0,1fr) 180px;align-items:center;gap:25px;min-height:212px}.track{font-size:clamp(24px,2.7vw,37px);line-height:1.42;letter-spacing:-.03em;font-weight:600;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.track-meta{font-size:11px;color:var(--muted);line-height:1.8;margin-top:17px;overflow-wrap:anywhere}
+.turntable{position:relative;width:180px;height:180px}.record{width:100%;height:100%;border-radius:50%;position:relative;background:repeating-radial-gradient(circle,#1c242d 0 2px,#333d46 3px,#171e26 4px 6px);border:1px solid #4b5967;box-shadow:0 9px 28px #0006;animation:spin 7s linear infinite;animation-play-state:paused}.record:before{content:"";position:absolute;inset:28%;border-radius:50%;background:conic-gradient(#efeadb 0deg 220deg,#2d73ee 220deg 360deg);border:2px solid #c1c7c4}.record:after{content:"";position:absolute;width:9px;height:9px;left:calc(50% - 4.5px);top:calc(50% - 4.5px);background:#10161c;border:2px solid #9ba5ac;border-radius:50%}.record-label{position:absolute;top:31%;left:38%;color:#17253a;font-size:11px;letter-spacing:.12em;transform:rotate(15deg);font-weight:750}.record-marker{position:absolute;left:14%;top:15%;height:5px;width:22px;border-radius:1px;background:var(--accent);transform:rotate(-43deg)}.tonearm{position:absolute;right:-7px;top:4px;width:41px;height:112px;border-right:4px solid #aab9c6;border-bottom:4px solid #aab9c6;border-radius:0 0 10px 0;transform:rotate(19deg);transform-origin:top right;pointer-events:none;box-shadow:2px 0 2px #0004}.tonearm:before{content:"";position:absolute;right:-8px;top:-5px;width:12px;height:12px;border:3px solid #aab9c6;border-radius:50%;background:#202a37}.tonearm:after{content:"";position:absolute;bottom:-7px;left:-5px;width:18px;height:10px;border-radius:2px;background:#e7e5dc;transform:rotate(-8deg)}.equalizer{display:flex;align-items:center;gap:3px;height:17px;margin-left:2px}.equalizer i{width:3px;height:13px;background:currentColor;transform:scaleY(.25);animation:level 1.1s ease-in-out infinite alternate;animation-play-state:paused}.equalizer i:nth-child(2){animation-delay:-.6s}.equalizer i:nth-child(3){animation-delay:-.3s}.equalizer i:nth-child(4){animation-delay:-.8s}.player[data-state=playing][data-online=true] .record,.player[data-state=playing][data-online=true] .equalizer i{animation-play-state:running}@keyframes spin{to{transform:rotate(360deg)}}@keyframes level{from{transform:scaleY(.25)}to{transform:scaleY(1)}}
+.progress{margin-top:18px}.time-row{justify-content:space-between;gap:8px;color:#a7b2bd;font-size:11px;font-variant-numeric:tabular-nums}#seekHint{font-size:10px;color:#788795}input[type=range]{appearance:none;display:block;width:100%;height:26px;margin:6px 0;background:transparent;cursor:pointer;--progress:0%}input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:3px;background:linear-gradient(to right,var(--accent) var(--progress),#3a444e var(--progress))}input[type=range]::-moz-range-track{height:3px;border-radius:3px;background:linear-gradient(to right,var(--accent) var(--progress),#3a444e var(--progress))}input[type=range]::-webkit-slider-thumb{appearance:none;width:10px;height:10px;margin-top:-3.5px;background:var(--accent);border:0;border-radius:50%}input[type=range]::-moz-range-thumb{width:10px;height:10px;background:var(--accent);border:0;border-radius:50%}input[type=range]:disabled{opacity:.4;cursor:not-allowed}.transport{justify-content:center;gap:18px;margin-top:10px}.transport .side{font-size:12px;min-width:86px;border-color:transparent}.player button:hover:not(:disabled){background:#ffffff0d;border-color:#687380}.transport .main-play{min-width:116px;min-height:46px;background:var(--paper)!important;border-color:var(--paper)!important;color:var(--night)!important;border-radius:6px}.transport .main-play:hover:not(:disabled){background:#fff!important}.secondary-controls{justify-content:center;gap:16px;border-top:1px solid var(--line);padding-top:12px;margin-top:19px}.secondary-controls button{border:0;font-size:11px;color:#9eabb9;padding:6px 8px;min-height:34px}.secondary-controls button.active{color:var(--accent)}
+.request{display:flex;flex-direction:column;padding:10px 0 8px}.request .eyebrow{color:var(--blue)}.request h2{font-size:32px;font-weight:650;line-height:1.4;letter-spacing:-.03em;margin:28px 0 13px}.request .description{font-size:13px;color:var(--muted);line-height:1.95}.request form{margin-top:28px}.request button{width:100%;margin-top:10px}.request .hint{margin-top:auto;padding-top:25px}.request-foot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:15px;margin-top:28px;font-size:11px;color:var(--muted)}.request-foot svg{color:var(--blue)}
+.bottom-grid{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(260px,.85fr);gap:36px;margin-top:38px;align-items:start}.library,.queue-card{padding:22px 0 0;border-top:2px solid var(--ink)}h2{font-size:18px;font-weight:650}.counter{font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted)}.row{align-items:end;gap:10px}.row>.grow{flex:1;min-width:0}.library-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 20px}.library-actions button{font-size:12px;padding:8px 12px;min-height:38px}.add-row{padding-top:18px;border-top:1px solid var(--line)}.song-list{list-style:none;padding:0;margin:18px 0 0;max-height:310px;overflow:auto;scrollbar-width:thin;scrollbar-color:#a2aaa4 transparent}.song-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.song-row:last-child{border:0}.song-number{width:20px;flex-shrink:0;font-size:11px;color:#7a858c;text-align:center;font-variant-numeric:tabular-nums}.song-copy{flex:1;min-width:0}.song-title{font-size:13px;line-height:1.65;overflow-wrap:anywhere}.song-detail{font-size:10px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}.song-row button{font-size:11px;min-height:36px;padding:6px 9px;border-color:transparent}.empty{font-size:12px;color:var(--muted);line-height:1.9;padding:27px 10px;text-align:center}.empty svg{display:block;width:24px;height:24px;margin:0 auto 12px}.queue-card .song-list{margin-top:0;max-height:455px}.queue-note{font-size:11px;border-top:1px solid var(--line);padding-top:15px;margin-top:15px}.error-note{font-size:12px;line-height:1.7;overflow-wrap:anywhere;margin-top:14px;padding:10px 12px;border-left:2px solid #f19b8c;color:#ffb9ad;background:#40232555}.footer{justify-content:space-between;gap:15px;border-top:1px solid var(--line);padding-top:20px;margin-top:35px;font-size:10px;color:var(--muted)}
+.login{min-height:calc(100vh - 240px);display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:70px;padding:35px 0 65px}.login-kicker{font-size:11px;color:var(--blue);letter-spacing:.16em}.login h2{font-size:clamp(40px,5.3vw,72px);font-weight:650;line-height:1.2;letter-spacing:-.055em;margin:26px 0}.login h2 em{font-style:normal;color:var(--blue)}.login-copy>p{font-size:14px;color:var(--muted);line-height:2}.login .button{margin-top:30px;padding:14px 22px;font-size:14px;gap:12px}.login-note{font-size:11px!important;margin-top:15px}.login-art{aspect-ratio:1;max-width:470px;width:100%;background:var(--night);color:var(--paper);border-radius:6px;padding:26px;position:relative;display:grid;place-items:center}.login-art .turntable{width:65%;height:auto;aspect-ratio:1}.login-art .record{position:absolute;inset:0}.login-art .record-label{font-size:16px}.login-art .tonearm{height:65%;width:25%;right:-3%;top:2%}.art-corner{position:absolute;font-size:10px;letter-spacing:.14em;color:#95a3b3}.art-corner.top{top:24px;left:26px}.art-corner.bottom{bottom:24px;right:26px;color:var(--accent)}.login-copy>.login-error{font-size:12px;color:var(--error);line-height:1.8;margin-top:18px;max-width:400px;overflow-wrap:anywhere}.retry{margin:10px 0 0;font-size:12px;min-height:36px}
+.toast-stack{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);width:min(440px,calc(100% - 32px));z-index:100;display:grid;gap:8px;pointer-events:none}.toast{display:flex;align-items:center;gap:10px;padding:14px 18px;border:1px solid #3d6e60;border-radius:8px;background:#172b27;color:#e5f4ed;font-size:13px;line-height:1.6;box-shadow:0 10px 35px #0d11172b;animation:toast-in .2s ease-out;overflow-wrap:anywhere}.toast.error{background:#472820;border-color:#ab7466;color:#ffddd2}.toast.leaving{opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}@keyframes toast-in{from{opacity:0;transform:translateY(10px)}}dialog{width:min(410px,calc(100% - 32px));padding:28px;background:var(--paper);color:var(--ink);border:1px solid #a3aaa8;border-radius:8px;box-shadow:0 20px 80px #0005}dialog::backdrop{background:#0d111790;backdrop-filter:blur(4px)}dialog h2{margin-bottom:16px}dialog p{font-size:13px;color:var(--muted);line-height:1.9;margin-bottom:20px;overflow-wrap:anywhere}.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}.login-invite{max-width:310px;margin-top:24px}.login-invite label{margin-bottom:6px}.login-invite input{background:#fff8}.login-form button{margin-top:12px}.library-meta{font-size:12px;color:var(--muted);margin:10px 0}.share-tools{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}.share-tools h3{font-size:13px;margin:0 0 12px}.share-row{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.share-row>div{flex:1;min-width:130px}.share-row button{min-height:46px}.share-list{font-size:12px;color:var(--muted);line-height:1.8;margin-top:12px}.share-list button{min-height:30px;padding:4px 8px;margin-left:8px;font-size:11px}.account-tools{display:flex;gap:8px;align-items:center}.account-tools button{font-size:11px;min-height:34px;padding:5px 9px}.admin-grid{display:grid;grid-template-columns:1fr 90px 90px;gap:8px}.admin-grid label{margin-bottom:5px}.admin-grid input{min-height:40px}.dialog-list{list-style:none;padding:0;margin:12px 0;max-height:300px;overflow:auto}.dialog-list li{padding:10px 0;border-bottom:1px solid var(--line);font-size:12px;line-height:1.6}.dialog-list button{min-height:30px;padding:3px 8px;float:right}.code-output{font-size:17px;font-weight:700;letter-spacing:.1em;user-select:all;overflow-wrap:anywhere}.dialog-wide{width:min(540px,calc(100% - 32px))}
+@media(max-width:1050px){.shell{padding:28px}.top-grid,.bottom-grid{gap:25px;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr)}.player{padding:23px}.track-layout{grid-template-columns:minmax(0,1fr) 138px;gap:19px}.turntable{width:138px;height:138px}.tonearm{height:87px;width:30px}.request h2{font-size:28px}.login{gap:35px}}
+@media(max-width:760px){.shell{padding:22px 20px}header{margin-bottom:23px;padding-bottom:20px}.identity{align-items:start;gap:16px;flex-direction:column;margin-bottom:22px}.account{width:100%;flex-wrap:wrap}.account-tools{margin-left:auto}.identity-actions{width:100%;justify-content:space-between}.identity-actions button{font-size:12px}.top-grid,.bottom-grid{grid-template-columns:1fr;gap:25px}.track-layout{grid-template-columns:minmax(0,1fr) 142px;min-height:185px}.turntable{width:142px;height:142px}.track{font-size:27px}.request{padding:0}.request h2{font-size:27px;margin:12px 0 9px}.request .description br{display:none}.request form{margin-top:18px}.request-form-row{display:flex;align-items:end;gap:10px}.request-form-row>div{min-width:0;flex:1}.request button{width:auto;margin:0}.request .hint{padding-top:14px}.request-foot{margin-top:17px;padding-top:12px}.bottom-grid{margin-top:28px}.queue-card{margin-top:0}.login{grid-template-columns:1fr;gap:34px;padding:12px 0 30px}.login h2{font-size:clamp(42px,9vw,64px);margin:20px 0}.login-art{max-width:100%;aspect-ratio:1.3}.login-art .turntable{width:48%}.login .button{margin-top:24px}.footer{line-height:1.8;align-items:start}.login-copy>p{font-size:13px}.admin-grid{grid-template-columns:1fr 1fr}.admin-grid>div:first-child{grid-column:1/-1}}
+@media(max-width:400px){.shell{padding:18px 14px}.brand-sub{font-size:9px}.header-status{font-size:10px}.player{padding:20px 17px}.track-layout{grid-template-columns:minmax(0,1fr) 105px;min-height:177px;gap:14px}.turntable{width:105px;height:105px}.tonearm{height:70px;width:22px;right:0}.track{font-size:23px}.record-label{font-size:8px}.transport{gap:5px}.transport .side{min-width:75px;padding:10px 7px}.transport .main-play{min-width:101px}.secondary-controls{gap:6px}.identity-actions{gap:8px}.identity-actions button{padding:10px;font-size:11px}.request h2{font-size:26px}.login h2{font-size:43px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><defs>
+<symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4m4-8v12m4-15v18m4-15v12m4-8v4"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="m9 5 11 7-11 7z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="4"/></symbol>
+<symbol id="i-prev" viewBox="0 0 24 24"><path d="M5 5v14m14-14L8 12l11 7z"/></symbol>
+<symbol id="i-next" viewBox="0 0 24 24"><path d="M19 5v14M5 5l11 7-11 7z"/></symbol>
+<symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 6h3c4 0 8 12 12 12h3m-4-4 4 4-4 4M3 18h3c1 0 2-1 3-2m6-8c1-1 2-2 3-2h3m-4-4 4 4-4 4"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><path d="m16 3 4 4-4 4M4 11V9a2 2 0 0 1 2-2h14M8 21l-4-4 4-4m12 0v2a2 2 0 0 1-2 2H4"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+<symbol id="i-headphones" viewBox="0 0 24 24"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="12" width="4" height="8" rx="2"/><rect x="17" y="12" width="4" height="8" rx="2"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h8M3 6h1M3 12h1M3 18h1"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+</defs></svg>
+<main class="shell">
+<header><div class="brand"><div class="brand-mark"><svg aria-hidden="true"><use href="#i-wave"/></svg></div><div><h1>同频</h1><p class="brand-sub">Discord · 一起听见</p></div></div><div class="header-status" role="status"><span class="dot"></span><span id="connection">正在连接控制台</span></div></header>
+<section id="login" class="login" aria-labelledby="loginTitle">
+  <div class="login-copy"><span class="login-kicker">把喜欢的音乐，放在一起。</span><h2 id="loginTitle">各自的耳机，<br><em>同一首歌。</em></h2><p>从 Bilibili 和 YouTube 收藏的旋律，到 Discord 里的相聚。<br>登录你的账号，把音乐带到所在的语音频道。</p><form id="loginForm" class="login-form"><div class="login-invite"><label for="inviteCode">首次注册填写邀请码；已有账号可留空</label><input id="inviteCode" autocomplete="off" maxlength="32" placeholder="例如 ABCD-EFGH-JKLM"></div><button class="primary" type="submit"><svg aria-hidden="true"><use href="#i-headphones"/></svg>使用 Discord 登录<span aria-hidden="true">↗</span></button></form><p class="login-note">账号绑定 Discord，歌单归你所有。</p><p id="loginError" class="login-error" role="status" hidden></p><button id="retryConnection" class="retry" hidden>重新连接</button></div>
+  <div class="login-art" aria-hidden="true"><span class="art-corner top">同频 / 一起听见</span><div class="turntable"><div class="record"><span class="record-label">同频</span><span class="record-marker"></span></div><span class="tonearm"></span></div><span class="art-corner bottom">这一面，留给你喜欢的声音。</span></div>
+</section>
+<div id="workspace" hidden>
+<section class="identity" aria-label="Discord 账号与语音连接">
+  <div class="account"><span id="avatar" class="avatar" aria-hidden="true"></span><div class="account-copy"><p id="username" class="account-name"></p><div class="account-sub"><span>已通过 Discord 登录</span><a class="logout" href="/auth/logout">退出</a></div></div><div class="account-tools"><button id="noticesButton" type="button">消息 <span id="unreadCount">0</span></button><button id="adminButton" type="button" hidden>邀请码</button></div></div>
+  <div class="identity-actions"><span id="voiceStatus" class="pill">语音 · 状态未知</span><button id="joinMe" data-busy disabled><svg aria-hidden="true"><use href="#i-headphones"/></svg>召唤到我的语音频道</button></div>
+</section>
+<div class="top-grid">
+  <section id="player" class="card player" data-state="idle" aria-labelledby="track">
+    <div class="section-heading"><span class="eyebrow">正在收听</span><span id="playStatus" class="pill"><span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="playStatusText">播放器 · 空闲</span></span></div>
+    <div class="track-layout"><div><h2 id="track" class="track">留一点时间，给喜欢的音乐。</h2><p id="trackMeta" class="track-meta">点播一首，或从歌单开始。</p></div><div class="turntable" aria-hidden="true"><div class="record"><span class="record-label">同频</span><span class="record-marker"></span></div><span class="tonearm"></span></div></div>
+    <div class="progress"><div class="time-row"><span id="position">0:00</span><span id="seekHint">等待播放</span><span id="duration">--:--</span></div><input id="seek" type="range" min="0" max="1" value="0" step="0.001" aria-label="播放进度" disabled></div>
+    <div class="transport"><button class="side" data-action="previous" data-busy><svg aria-hidden="true"><use href="#i-prev"/></svg>上一首</button><button id="pause" data-action="pause" class="primary main-play" data-busy disabled><svg aria-hidden="true"><use id="pauseIcon" href="#i-pause"/></svg><span id="pauseText">暂停</span></button><button id="skip" class="side" data-action="skip" data-busy disabled>下一首<svg aria-hidden="true"><use href="#i-next"/></svg></button></div>
+    <div class="secondary-controls"><button id="shuffle" data-action="shuffle" data-busy><svg aria-hidden="true"><use href="#i-shuffle"/></svg>随机队列</button><button id="repeat" data-action="repeat" data-busy><svg aria-hidden="true"><use href="#i-repeat"/></svg><span id="repeatText">循环关闭</span></button><button id="stop" data-action="stop" data-busy><svg aria-hidden="true"><use href="#i-stop"/></svg>停止</button></div>
+    <p id="playerError" class="error-note" role="status" hidden></p>
+  </section>
+  <section class="card request" aria-labelledby="requestTitle">
+    <span class="eyebrow">留一个位置，给你的歌</span><h2 id="requestTitle">下一首，<br>听你的。</h2><p class="description">有些歌，一个人听不够。<br>贴上链接，让整个频道听见。</p>
+    <form id="playForm"><div class="request-form-row"><div><label for="video">BV 号或视频链接</label><input id="video" placeholder="粘贴 BV 号、Bilibili 或 YouTube 链接" required autocomplete="off" spellcheck="false"></div><button id="play" class="primary" data-busy type="submit"><svg aria-hidden="true"><use href="#i-plus"/></svg>加入播放</button></div></form>
+    <p class="hint">新点播会加入队尾。<br>还没开始？先把机器人召唤到你的频道。</p><div class="request-foot"><svg aria-hidden="true"><use href="#i-wave"/></svg>声音在 Discord 语音频道播放</div>
+  </section>
+</div>
+<div class="bottom-grid">
+  <section class="card library" aria-labelledby="libraryTitle">
+    <div class="section-heading"><h2 id="libraryTitle">收藏的旋律</h2><span id="playlistCount" class="counter">歌单</span></div><label for="playlist">我的与同服务器公开歌单</label><select id="playlist"><option value="">选择一份歌单</option></select><p id="playlistMeta" class="library-meta">选择歌单后可以查看公开状态和权限。</p>
+    <div class="library-actions"><button id="playlistPlay" class="primary" data-busy disabled><svg aria-hidden="true"><use href="#i-play"/></svg>播放歌单</button><button id="playlistCreate" class="quiet" data-busy><svg aria-hidden="true"><use href="#i-plus"/></svg>新建歌单</button><button id="playlistVisibility" class="quiet" data-busy disabled>设为隐藏</button><button id="playlistDelete" class="quiet danger" data-busy disabled>删除歌单</button></div>
+    <form id="addForm" class="row add-row"><div class="grow"><label for="playlistVideo">为这份歌单添加歌曲</label><input id="playlistVideo" placeholder="BV 号、Bilibili 或 YouTube 链接" required autocomplete="off" spellcheck="false"></div><button id="playlistAdd" class="quiet" data-busy type="submit" disabled>添加</button></form>
+    <ol id="songs" class="song-list" aria-label="歌单歌曲"><li class="empty">选择一份歌单，看看收藏了哪些好声音。</li></ol>
+    <div id="shareTools" class="share-tools" hidden><h3>分享给指定用户</h3><div class="share-row"><div><label for="shareUser">用户</label><select id="shareUser"><option value="">选择用户</option></select></div><div><label for="sharePermission">权限</label><select id="sharePermission"><option value="viewer">仅查看与播放</option><option value="editor">共同编辑</option></select></div><button id="shareSave" type="button">保存分享</button></div><div id="shareList" class="share-list"></div></div>
+  </section>
+  <section class="card queue-card" aria-labelledby="queueTitle"><div class="section-heading"><h2 id="queueTitle">接下来</h2><span id="queueCount" class="counter">0 首待播</span></div><ol id="queue" class="song-list" aria-label="待播队列"><li class="empty">队列还很安静，添加一首喜欢的歌吧。</li></ol><p class="hint queue-note">按队列顺序播放 · 与频道内所有人共享</p></section>
+</div>
+</div>
+<footer class="footer"><span>同一个频道，同一段旋律。</span><span id="syncStatus">正在确认登录状态</span></footer>
+</main>
+<div id="toasts" class="toast-stack" role="status" aria-live="polite" aria-atomic="false"></div>
+<dialog id="editor" aria-labelledby="dialogTitle"><form id="dialogForm"><h2 id="dialogTitle">新建歌单</h2><p id="dialogDescription"></p><div id="nameField"><label for="playlistName">歌单名称</label><input id="playlistName" maxlength="60" autocomplete="off" required placeholder="给喜欢的音乐起个名字"></div><div class="dialog-actions"><button id="dialogCancel" type="button" class="quiet">取消</button><button id="dialogConfirm" type="submit" class="primary">创建歌单</button></div></form></dialog>
+<dialog id="noticesDialog" class="dialog-wide" aria-labelledby="noticesTitle"><h2 id="noticesTitle">消息</h2><ul id="noticesList" class="dialog-list"></ul><div class="dialog-actions"><button id="closeNotices" type="button">关闭</button></div></dialog>
+<dialog id="adminDialog" class="dialog-wide" aria-labelledby="adminTitle"><h2 id="adminTitle">邀请码</h2><p>首次注册需要邀请码。随机生成或自行设定，默认可使用一次、七天有效。</p><form id="inviteForm"><div class="admin-grid"><div><label for="customInvite">自定义邀请码（留空则随机）</label><input id="customInvite" maxlength="32" autocomplete="off" placeholder="留空随机生成"></div><div><label for="inviteUses">次数</label><input id="inviteUses" type="number" min="1" max="50" value="1"></div><div><label for="inviteDays">天数</label><input id="inviteDays" type="number" min="1" max="30" value="7"></div></div><div class="dialog-actions"><button class="primary" type="submit">生成邀请码</button></div></form><div id="generatedBox" hidden><p>邀请码仅在此处完整显示，请现在复制。</p><p id="generatedInvite" class="code-output"></p><button id="copyInvite" type="button">复制邀请码</button></div><ul id="inviteList" class="dialog-list"></ul><div class="dialog-actions"><button id="closeAdmin" type="button">关闭</button></div></dialog>
+<script>
+const $ = id => document.getElementById(id);
+const icon = name => { const svg = document.createElementNS('http://www.w3.org/2000/svg','svg'); svg.setAttribute('aria-hidden','true'); const use = document.createElementNS('http://www.w3.org/2000/svg','use'); use.setAttribute('href','#i-' + name); svg.append(use); return svg; };
+const integer = n => Number.isFinite(Number(n)) ? Math.max(0,Math.floor(Number(n))) : 0;
+const duration = n => { if (n == null || !Number.isFinite(Number(n))) return '--:--'; const seconds = integer(n); return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2,'0')}`; };
+const statusLabels = { idle:'空闲',loading:'加载中',playing:'播放中',paused:'已暂停',error:'播放异常' };
+const voiceLabels = { ready:'已连接',connecting:'连接中',signalling:'连接中',disconnected:'未连接',destroyed:'未连接' };
+const repeatLabels = { off:'循环关闭',one:'单曲循环',queue:'队列循环' };
+let state = null, selected = '', busy = false, online = false, dragging = false, seekTrack = null, refreshSequence = 0, refreshPending = false, songsSequence = 0, queueSignature = '', playlistSignature = '', dialogIntent = null;
+let authState = 'checking', transportPending = false, animationFrame = 0, seekNeedsFocus = false;
+const chosenPlaylist = () => (state?.playlists || []).find(item => String(item.id) === selected);
+let positionClock = { seconds:0, correction:0, at:performance.now(), key:null, status:'idle' };
+const oauthError = new URLSearchParams(location.search).get('authError');
+if (oauthError) { $('loginError').textContent = oauthError.slice(0,300); $('loginError').hidden = false; const url = new URL(location.href); url.searchParams.delete('authError'); history.replaceState(null,'',url); }
+function notice(text,error = false) {
+  const toast = document.createElement('div'); toast.className = 'toast' + (error ? ' error' : '');
+  const mark = document.createElement('span'); mark.textContent = error ? '!' : '✓'; mark.setAttribute('aria-hidden','true');
+  const copy = document.createElement('span'); copy.textContent = text || '操作已完成。'; toast.append(mark,copy);
+  while ($('toasts').children.length >= 3) $('toasts').firstElementChild.remove();
+  $('toasts').append(toast); setTimeout(() => { toast.classList.add('leaving'); setTimeout(() => toast.remove(),350); },error ? 6500 : 3600);
+}
+async function api(path,data) {
+  let response;
+  try { response = await fetch(path,{ ...(data ? { method:'POST',headers:{ 'Content-Type':'application/json' },body:JSON.stringify(data) } : {}),cache:'no-store',signal:AbortSignal.timeout(data ? 120000 : 15000) }); }
+  catch (error) { throw new Error(error.name === 'TimeoutError' ? '请求超时，请稍后查看状态再重试。' : '无法连接控制服务，请检查网络后重试。'); }
+  if (response.status === 401) { const error = new Error('请使用 Discord 登录后继续。'); error.authRequired = true; throw error; }
+  let json; try { json = await response.json(); } catch { throw new Error('控制服务返回异常，请稍后重试。'); }
+  if (!response.ok) throw new Error(json.error || `操作失败（${response.status}）。`);
+  return json;
+}
+const trackKey = value => value?.current ? (value.current.url || value.current.title) : null;
+const currentKey = () => trackKey(state);
+const totalSeconds = () => state?.durationSeconds === undefined ? (state?.current?.duration == null ? null : integer(state.current.duration)) : (state.durationSeconds == null ? null : integer(state.durationSeconds));
+const seekMaximum = () => Math.max(0,Math.min(43200,Math.ceil(Number(state?.current?.duration ?? totalSeconds() ?? 0)) - 1));
+function showLogin(message = '') {
+  freezeClock(); online = false; authState = 'guest'; dragging = false; state = null; selected = ''; songsSequence++;
+  refreshSequence++; refreshPending = false; seekNeedsFocus = false;
+  queueSignature = ''; playlistSignature = ''; $('workspace').hidden = true; $('login').hidden = false;
+  $('username').textContent = ''; $('avatar').replaceChildren(); $('toasts').replaceChildren();
+  if ($('editor').open) $('editor').close();
+  $('connection').textContent = '等待 Discord 登录'; $('connection').parentElement.className = 'header-status';
+  $('syncStatus').textContent = '登录后，与频道一起听'; $('retryConnection').hidden = true;
+  if (message) { $('loginError').textContent = message; $('loginError').hidden = false; }
+  updateControls();
+}
+function estimatedPosition(now = performance.now()) {
+  const advances = online && state?.current && positionClock.status === 'playing' && !transportPending;
+  const elapsed = advances ? (now - positionClock.at) / 1000 : 0;
+  const seconds = Math.max(0,positionClock.seconds + elapsed + positionClock.correction * Math.min(elapsed / 2,1));
+  const total = totalSeconds(); return total == null ? seconds : Math.min(seconds,total);
+}
+function freezeClock() {
+  positionClock.seconds = estimatedPosition(); positionClock.at = performance.now(); positionClock.correction = 0;
+  if (animationFrame) cancelAnimationFrame(animationFrame); animationFrame = 0;
+}
+function calibrateClock(next,requestStarted) {
+  const now = performance.now(), sample = integer(next.positionSeconds);
+  const prediction = estimatedPosition(now), key = trackKey(next);
+  // Integer server samples describe a one-second interval. Preserve the current
+  // fraction within that interval so each poll does not visibly rewind the bar.
+  const continuous = online && !transportPending && key === positionClock.key && next.status === 'playing' && positionClock.status === 'playing';
+  const sampledPosition = sample + (next.status === 'playing' ? Math.min((now - requestStarted) / 2000,.5) : 0);
+  const inSampleInterval = prediction >= sample && prediction < sample + 1.1;
+  const smallCorrection = continuous && !inSampleInterval && Math.abs(sampledPosition - prediction) <= 1.5;
+  const seconds = continuous && (inSampleInterval || smallCorrection) ? prediction : sampledPosition;
+  // Ease small clock drift over two seconds; song changes and seeks re-anchor
+  // immediately. The correction never makes normal playback run backwards.
+  const correction = smallCorrection ? sampledPosition - prediction : 0;
+  positionClock = { seconds, correction, at:now, key, status:next.status };
+}
+function animateProgress(now) {
+  animationFrame = 0;
+  if (!online || !state || document.hidden) return;
+  if (!dragging) paintProgress(estimatedPosition(now));
+  if (state.status === 'playing' && !transportPending) animationFrame = requestAnimationFrame(animateProgress);
+}
+function scheduleProgress() {
+  if (animationFrame) cancelAnimationFrame(animationFrame);
+  animationFrame = requestAnimationFrame(animateProgress);
+}
+function updateControls() {
+  document.querySelectorAll('[data-busy]').forEach(button => { button.disabled = busy || !online; });
+  const noAction = busy || !online || !state?.currentUser;
+  $('pause').disabled = noAction || !['playing','paused'].includes(state?.status);
+  $('skip').disabled = noAction || !state?.current;
+  $('shuffle').disabled = noAction || (state?.upcoming?.length || 0) < 2;
+  $('stop').disabled = noAction || (!state?.current && ['disconnected','destroyed',undefined].includes(state?.voice));
+  $('joinMe').disabled = noAction;
+  const playlist = chosenPlaylist();
+  $('playlistPlay').disabled = noAction || !playlist;
+  $('playlistDelete').disabled = noAction || playlist?.permission !== 'owner';
+  $('playlistVisibility').disabled = noAction || playlist?.permission !== 'owner';
+  $('playlistAdd').disabled = noAction || !playlist || playlist.permission === 'viewer';
+  $('playlistVisibility').textContent = playlist?.visibility === 'private' ? '设为公开' : '设为隐藏';
+  $('seek').disabled = noAction || !state?.current || !['playing','paused'].includes(state?.status) || !(totalSeconds() > 0);
+  if (seekNeedsFocus && !$('seek').disabled) { if (document.activeElement === document.body || document.activeElement === $('seek')) $('seek').focus({ preventScroll:true }); seekNeedsFocus = false; }
+  $('player').setAttribute('aria-busy',String(busy));
+  $('player').dataset.online = String(online && !transportPending);
+  if (online) $('syncStatus').textContent = busy ? '正在处理操作…' : '与语音频道同步';
+}
+async function action(name,extra = {}) {
+  if (busy) return false;
+  if (name === 'seek' && document.activeElement === $('seek')) seekNeedsFocus = true;
+  const changesTransport = ['pause','seek','skip','previous','stop','playlistPlay'].includes(name);
+  if (changesTransport) { freezeClock(); transportPending = true; if (name === 'seek') positionClock.seconds = extra.seconds; }
+  busy = true; updateControls();
+  if (!dragging) paintProgress(estimatedPosition());
+  try { const result = await api('/api/action',{ action:name,...extra }); notice(result.message); await refresh(true); return true; }
+  catch (error) { if (error.authRequired) showLogin('登录已过期，请重新使用 Discord 登录。'); else { notice(error.message,true); if (changesTransport) await refresh(true); } return false; }
+  finally { busy = false; transportPending = false; positionClock.at = performance.now(); updateControls(); scheduleProgress(); }
+}
+function paintProgress(seconds) {
+  const total = totalSeconds(), numeric = Math.max(0,Number(seconds) || 0), value = total > 0 ? Math.min(numeric,total) : numeric;
+  $('position').textContent = duration(value); $('duration').textContent = duration(total);
+  $('seek').max = String(total > 0 ? seekMaximum() : 1); $('seek').value = String(Math.min(value,seekMaximum()));
+  $('seek').style.setProperty('--progress',`${total > 0 ? value / total * 100 : 0}%`);
+  $('seek').setAttribute('aria-valuetext',`${integer(value)} 秒${total == null ? '' : `，共 ${total} 秒`}`);
+  $('seekHint').textContent = dragging ? `定位至 ${duration(value)}` : !state?.current ? '等待播放' : total > 0 ? '拖动调整进度' : '时长未知，暂不可跳转';
+}
+function emptyList(box,text) { box.replaceChildren(); const li = document.createElement('li'); li.className = 'empty'; li.append(icon('list'),document.createTextNode(text)); box.append(li); }
+function songRow(song,index) {
+  const row = document.createElement('li'); row.className = 'song-row';
+  const number = document.createElement('span'); number.className = 'song-number'; number.textContent = String(index + 1).padStart(2,'0');
+  const copy = document.createElement('div'); copy.className = 'song-copy'; const title = document.createElement('div'); title.className = 'song-title'; title.textContent = song.title;
+  const detail = document.createElement('div'); detail.className = 'song-detail'; detail.textContent = `${song.source === 'youtube' ? 'YouTube' : 'Bilibili'} · ${song.id || ''} · ${song.duration == null ? '时长未知' : duration(song.duration)}`; copy.append(title,detail); row.append(number,copy); return row;
+}
+function render() {
+  authState = 'authenticated'; $('login').hidden = true; $('workspace').hidden = false; $('loginError').hidden = true;
+  $('username').textContent = state.currentUser.username;
+  if (state.currentUser.avatarUrl && $('avatar').firstElementChild?.src !== state.currentUser.avatarUrl) { const img = document.createElement('img'); img.src = state.currentUser.avatarUrl; img.alt = ''; $('avatar').replaceChildren(img); }
+  else $('avatar').textContent = Array.from(state.currentUser.username || '听')[0];
+  $('adminButton').hidden = !state.currentUser.isAdmin; $('unreadCount').textContent = String(state.unreadCount || 0);
+  $('connection').textContent = '控制台已同步'; $('connection').parentElement.className = 'header-status online';
+  $('syncStatus').textContent = '与语音频道同步';
+  $('voiceStatus').textContent = '语音 · ' + (voiceLabels[state.voice] || '状态未知');
+  $('voiceStatus').title = state.voiceChannelId ? `语音频道：${state.voiceChannelId}` : '尚未加入语音频道';
+  $('playStatusText').textContent = '播放器 · ' + (statusLabels[state.status] || '状态未知');
+  $('playStatus').dataset.state = state.status; $('player').dataset.state = state.status;
+  $('track').textContent = state.current?.title || '留一点时间，给喜欢的音乐。'; $('track').title = state.current?.title || '';
+  $('trackMeta').textContent = state.current ? `${state.playlistName ? '来自歌单「' + state.playlistName + '」' : '手动点播'} · ${state.current.source === 'youtube' ? 'YouTube' : 'Bilibili'} · ${state.current.id || ''}` : state.voice === 'ready' ? '语音已连接，点播一首就可以开始。' : '点播一首，或从歌单开始。';
+  $('pauseText').textContent = state.status === 'paused' ? '继续' : '暂停'; $('pauseIcon').setAttribute('href',state.status === 'paused' ? '#i-play' : '#i-pause');
+  $('repeatText').textContent = repeatLabels[state.repeat] || '循环状态未知'; $('repeat').classList.toggle('active',['one','queue'].includes(state.repeat));
+  $('playerError').hidden = !state.lastError; $('playerError').textContent = state.lastError ? '最近播放异常：' + state.lastError : '';
+  if (dragging && seekTrack !== currentKey()) dragging = false;
+  if (!dragging) paintProgress(estimatedPosition());
+  const upcoming = state.upcoming || []; $('queueCount').textContent = `${upcoming.length} 首待播`;
+  const newQueueSignature = JSON.stringify(upcoming);
+  if (newQueueSignature !== queueSignature) { queueSignature = newQueueSignature; $('queue').replaceChildren(); if (!upcoming.length) emptyList($('queue'),'队列还很安静，添加一首喜欢的歌吧。'); else upcoming.forEach((song,index) => $('queue').append(songRow(song,index))); }
+  const playlists = state.playlists || [], newPlaylistSignature = JSON.stringify(playlists);
+  $('playlistCount').textContent = `${playlists.length} 份可见歌单`;
+  if (newPlaylistSignature !== playlistSignature) {
+    playlistSignature = newPlaylistSignature; const previous = selected;
+    if (!playlists.some(item => String(item.id) === selected)) selected = '';
+    $('playlist').replaceChildren(new Option('选择一份歌单',''),...playlists.map(item => new Option(`${item.permission === 'owner' ? '我的' : item.ownerName + ' 的'} · ${item.name}${item.visibility === 'private' ? ' · 隐藏' : ''}`,String(item.id)))); $('playlist').value = selected;
+    if (previous && !selected) { songsSequence++; emptyList($('songs'),'歌单已不存在，请选择另一份歌单。'); }
+    else if (selected) void loadSongs();
+  }
+  const chosen = chosenPlaylist();
+  $('playlistMeta').textContent = chosen ? `${chosen.permission === 'owner' ? '你创建的' : chosen.ownerName + ' 创建的'} · ${chosen.visibility === 'public' ? '公开' : '隐藏'} · ${chosen.permission === 'owner' ? '可管理' : chosen.permission === 'editor' ? '可共同编辑' : '仅查看与播放'}` : '选择歌单后可以查看公开状态和权限。';
+  $('shareTools').hidden = chosen?.permission !== 'owner';
+  updateControls(); scheduleProgress();
+}
+async function refresh(force = false) {
+  if (refreshPending && !force) return;
+  refreshPending = true;
+  const request = ++refreshSequence, requestStarted = performance.now();
+  try { const next = await api('/api/state'); if (request !== refreshSequence) return; if (!next.currentUser) { showLogin(); return; } calibrateClock(next,requestStarted); state = next; online = true; render(); }
+  catch (error) {
+    if (request !== refreshSequence) return;
+    if (error.authRequired) { showLogin(authState === 'authenticated' ? '登录已过期，请重新使用 Discord 登录。' : ''); return; }
+    const wasOnline = online; freezeClock(); online = false; $('connection').textContent = '控制台连接中断'; $('connection').parentElement.className = 'header-status offline'; $('syncStatus').textContent = '自动重试中 · 当前显示上次同步状态';
+    if (!state) { $('voiceStatus').textContent = '语音 · 状态未知'; $('playStatusText').textContent = '播放器 · 状态未知'; }
+    if (authState !== 'authenticated') { $('loginError').hidden = false; $('loginError').textContent = error.message; $('retryConnection').hidden = false; }
+    updateControls(); if (wasOnline) notice(error.message,true);
+  }
+  finally { if (request === refreshSequence) refreshPending = false; }
+}
+async function loadSongs() {
+  const id = selected, request = ++songsSequence;
+  if (!id) { emptyList($('songs'),'选择一份歌单，看看收藏了哪些好声音。'); $('shareList').replaceChildren(); return; }
+  emptyList($('songs'),'正在读取歌单…');
+  try {
+    const data = await api('/api/playlist?id=' + encodeURIComponent(id));
+    if (request !== songsSequence || id !== selected) return;
+    const editable = ['owner','editor'].includes(data.info.permission);
+    $('shareList').replaceChildren();
+    if (data.info.permission === 'owner') {
+      const members = await api('/api/members');
+      if (request !== songsSequence || id !== selected) return;
+      $('shareUser').replaceChildren(new Option('选择用户',''),...members.members.map(user => new Option(`${user.username} · ${user.id}`,user.id)));
+      if (!data.recipients.length) $('shareList').textContent = '还没有单独分享给其他用户。';
+      else data.recipients.forEach(user => {
+        const line = document.createElement('div'); line.textContent = `${user.username} · ${user.permission === 'editor' ? '共同编辑' : '仅查看'}`;
+        const remove = document.createElement('button'); remove.className = 'danger'; remove.textContent = '取消分享';
+        remove.onclick = async () => { if (await action('playlistUnshare',{ playlistId:Number(id),recipientId:user.id })) await loadSongs(); };
+        line.append(remove); $('shareList').append(line);
+      });
+    }
+    if (!data.songs.length) { emptyList($('songs'),'这份歌单还是空的，把第一首喜欢的歌放进来。'); return; }
+    $('songs').replaceChildren(); data.songs.forEach((song,index) => {
+      const row = songRow(song,index);
+      if (editable) { const remove = document.createElement('button'); remove.className = 'danger'; remove.textContent = '移除'; remove.dataset.busy = ''; remove.setAttribute('aria-label',`从歌单移除「${song.title}」`);
+        remove.onclick = async () => { if (await action('playlistRemove',{ playlistId:Number(id),position:index + 1 })) await loadSongs(); }; row.append(remove); }
+      $('songs').append(row);
+    }); updateControls();
+  } catch (error) { if (request === songsSequence) { if (error.authRequired) showLogin('登录已过期，请重新使用 Discord 登录。'); else { emptyList($('songs'),'歌单读取失败，请重新选择后重试。'); notice(error.message,true); } } }
+}
+document.querySelectorAll('[data-action]').forEach(button => button.onclick = () => action(button.dataset.action));
+$('playForm').onsubmit = async event => { event.preventDefault(); const input = $('video').value.trim(); if (!input) return notice('请先填写 BV 号或视频链接。',true); if (await action('play',{ video:input })) { if ($('video').value.trim() === input) $('video').value = ''; } };
+$('joinMe').onclick = () => action('joinMe');
+$('retryConnection').onclick = () => refresh(true);
+$('seek').onpointerdown = () => { if (!$('seek').disabled) { dragging = true; seekTrack = currentKey(); } };
+$('seek').oninput = () => { if (!dragging) { dragging = true; seekTrack = currentKey(); } paintProgress(integer($('seek').value)); };
+$('seek').onchange = async () => {
+  const seconds = Math.min(integer($('seek').value),seekMaximum()), expected = seekTrack; dragging = false;
+  if (expected !== currentKey()) { notice('歌曲已切换，请重新调整进度。',true); paintProgress(estimatedPosition()); return; }
+  await action('seek',{ seconds }); paintProgress(estimatedPosition());
+};
+$('seek').onpointercancel = () => { dragging = false; paintProgress(estimatedPosition()); };
+$('seek').onpointerup = () => setTimeout(() => { if (dragging) { dragging = false; paintProgress(estimatedPosition()); } },0);
+$('seek').onblur = () => { if (dragging) { dragging = false; paintProgress(estimatedPosition()); } };
+$('seek').onkeydown = event => {
+  const shifts = { ArrowLeft:-1, ArrowDown:-1, ArrowRight:1, ArrowUp:1, PageDown:-10, PageUp:10 };
+  if (!(event.key in shifts) && !['Home','End'].includes(event.key)) return;
+  event.preventDefault(); if ($('seek').disabled) return;
+  seekTrack = currentKey();
+  $('seek').value = String(event.key === 'Home' ? 0 : event.key === 'End' ? seekMaximum() : Math.max(0,Math.min(seekMaximum(),integer($('seek').value) + shifts[event.key])));
+  $('seek').dispatchEvent(new Event('change'));
+};
+$('playlist').onchange = () => { selected = $('playlist').value; updateControls(); loadSongs(); };
+$('playlistPlay').onclick = () => selected && action('playlistPlay',{ playlistId:Number(selected) });
+$('playlistVisibility').onclick = async () => { const p=chosenPlaylist(); if (p && await action('playlistVisibility',{ playlistId:p.id,visibility:p.visibility === 'public' ? 'private' : 'public' })) await loadSongs(); };
+$('shareSave').onclick = async () => { const recipientId=$('shareUser').value; if (!selected || !recipientId) return notice('请先选择分享对象。',true); if (await action('playlistShare',{ playlistId:Number(selected),recipientId,permission:$('sharePermission').value })) await loadSongs(); };
+function openEditor(kind) {
+  dialogIntent = { kind,id:selected }; const create = kind === 'create';
+  $('dialogTitle').textContent = create ? '新建歌单' : '删除这份歌单？';
+  $('dialogDescription').textContent = create ? '默认公开给同服务器的用户。之后可以设为隐藏。' : `「${chosenPlaylist()?.name || ''}」及其中的歌曲记录将被删除。此操作无法撤销。`;
+  $('nameField').hidden = !create; $('playlistName').required = create; $('playlistName').value = ''; $('playlistName').setCustomValidity('');
+  $('dialogConfirm').textContent = create ? '创建歌单' : '确认删除'; $('dialogConfirm').className = create ? 'primary' : 'danger';
+  $('editor').showModal(); (create ? $('playlistName') : $('dialogCancel')).focus();
+}
+$('playlistCreate').onclick = () => openEditor('create'); $('playlistDelete').onclick = () => selected && openEditor('delete');
+$('dialogCancel').onclick = () => $('editor').close();
+$('dialogForm').onsubmit = async event => {
+  event.preventDefault(); const intent = dialogIntent;
+  const name = $('playlistName').value.trim();
+  if (intent.kind === 'create' && !name) { $('playlistName').setCustomValidity('请输入歌单名称。'); $('playlistName').reportValidity(); return; }
+  $('editor').close();
+  if (await action(intent.kind === 'create' ? 'playlistCreate' : 'playlistDelete',intent.kind === 'create' ? { name } : { playlistId:Number(intent.id) })) {
+    if (intent.kind === 'create') { const created=(state?.playlists || []).find(item => item.permission === 'owner' && item.name.toLowerCase() === name.toLowerCase()); if (created) { selected = String(created.id); $('playlist').value = selected; } }
+    else if (intent.kind === 'delete' && selected === intent.id) { selected = ''; $('playlist').value = ''; }
+    updateControls(); await loadSongs();
+  }
+};
+$('playlistName').oninput = () => $('playlistName').setCustomValidity('');
+$('addForm').onsubmit = async event => {
+  event.preventDefault(); if (!selected) return notice('请先选择歌单。',true);
+  const id = Number(selected), video = $('playlistVideo').value.trim(); if (!video) return notice('请先填写 BV 号或视频链接。',true);
+  if (await action('playlistAdd',{ playlistId:id,video })) { if ($('playlistVideo').value.trim() === video) $('playlistVideo').value = ''; await loadSongs(); }
+};
+$('loginForm').onsubmit = async event => {
+  event.preventDefault();
+  $('loginError').hidden = true;
+  const button=$('loginForm').querySelector('button'); button.disabled=true;
+  try {
+    const response=await fetch('/auth/discord/start',{ method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ inviteCode:$('inviteCode').value.trim() }),cache:'no-store' });
+    const data=await response.json();
+    if (!response.ok || !data.url) throw new Error(data.error || '无法开始 Discord 登录。');
+    location.assign(data.url);
+  } catch (error) { $('loginError').textContent=error.message; $('loginError').hidden=false; button.disabled=false; }
+};
+$('noticesButton').onclick = async () => {
+  try {
+    const data=await api('/api/notices'); const list=$('noticesList'); list.replaceChildren();
+    if (!data.notices.length) { const row=document.createElement('li'); row.textContent='暂时没有消息。'; list.append(row); }
+    else data.notices.forEach(item => { const row=document.createElement('li'); const date=new Date(item.createdAt).toLocaleString(); row.textContent=`${item.read ? '' : '● '}${item.message} · ${date}`; list.append(row); });
+    $('noticesDialog').showModal(); await action('noticesRead');
+  } catch (error) { notice(error.message,true); }
+};
+$('closeNotices').onclick = () => $('noticesDialog').close();
+async function loadInvites() {
+  const data=await api('/api/invites'); const list=$('inviteList'); list.replaceChildren();
+  if (!data.invites.length) { const row=document.createElement('li'); row.textContent='还没有邀请码。'; list.append(row); return; }
+  data.invites.forEach(item => { const row=document.createElement('li'); const active=!item.revoked && item.uses<item.maxUses && item.expiresAt>Date.now();
+    row.textContent=`${item.prefix}… · ${item.uses}/${item.maxUses} 次 · ${new Date(item.expiresAt).toLocaleDateString()} · ${active ? '有效' : '失效'}`;
+    if (active) { const button=document.createElement('button'); button.textContent='撤销'; button.className='danger'; button.onclick=async () => { if (await action('inviteRevoke',{ inviteId:item.id })) await loadInvites(); }; row.append(button); }
+    list.append(row);
+  });
+}
+$('adminButton').onclick = async () => { try { await loadInvites(); $('generatedBox').hidden=true; $('adminDialog').showModal(); } catch (error) { notice(error.message,true); } };
+$('closeAdmin').onclick = () => $('adminDialog').close();
+$('copyInvite').onclick = async () => { try { await navigator.clipboard.writeText($('generatedInvite').textContent); notice('邀请码已复制。'); } catch { notice('复制失败，请手动选中邀请码。',true); } };
+$('inviteForm').onsubmit = async event => {
+  event.preventDefault(); const button=$('inviteForm').querySelector('button'); button.disabled=true;
+  try {
+    const data=await api('/api/action',{ action:'inviteCreate',code:$('customInvite').value.trim() || undefined,maxUses:Number($('inviteUses').value),days:Number($('inviteDays').value) });
+    $('generatedInvite').textContent=data.code; $('generatedBox').hidden=false; $('customInvite').value=''; notice('邀请码已创建。'); await loadInvites();
+  } catch (error) { notice(error.message,true); } finally { button.disabled=false; }
+};
+updateControls(); refresh(); setInterval(() => { if (!busy && !document.hidden && authState !== 'guest') refresh(); },2500);
+document.addEventListener('visibilitychange',() => { if (document.hidden) { if (animationFrame) cancelAnimationFrame(animationFrame); animationFrame = 0; } else if (!busy && authState !== 'guest') refresh(); });
+</script>
+</body>
+</html>
