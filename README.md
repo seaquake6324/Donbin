@@ -122,6 +122,8 @@ Compose 只把网页映射到宿主机的 `127.0.0.1:3000`。要从外网访问�
 
 一台持续在线的 Linux 云服务器适合同时运行 Bot 和网页，通常能避开家用网络断线及电脑休眠。选机房时重点看它到 **Discord 语音的 UDP 连接**和 **Bilibili、YouTube 的访问速度**；CPU/内存需求相对小。先在服务器运行 `node dist/media-check.js BV1xx411c7mD 60` 和 `node dist/media-check.js 'https://www.youtube.com/watch?v=jNQXAC9IVRw'`，确认都能输出 PCM，再启动 Bot 并用 `/diagnostics` 检查语音。网页只监听 `127.0.0.1:3000`，公网入口请通过有 HTTPS 的反向代理或正式 Cloudflare Tunnel 转发，并设置 `WEB_PUBLIC_URL` 与 Discord OAuth 回调。将 `data/music.sqlite` 和 `.env` 安全复制过去，前者是歌单与上次语音频道记录，后者含 Bot Token、Client Secret 和会话密钥。迁移期间别让本机和云端同时使用同一个 Bot Token 运行。
 
+如果云机房请求 Bilibili 返回 HTTP 412，先在**那台云服务器上**运行 `media-check` 确认，不要仅凭机房国家判断能否访问。可以给 Bilibili 的 yt-dlp 解析单独配置一个可用的 HTTP(S) 或 SOCKS5 代理：在 Bot 用户可读、其他用户不可读的文件中写入 `--proxy http://用户:密码@代理主机:端口`，例如 `/var/lib/donbin/bilibili-yt-dlp.conf`（Linux 权限 `600`）；再在 `.env` 填 `YTDLP_BILIBILI_CONFIG_PATH=/var/lib/donbin/bilibili-yt-dlp.conf` 并重启。不要把含凭据的配置文件提交到 Git。此设置只影响 Bilibili 的 yt-dlp 请求，YouTube 和 FFmpeg 音频流仍直接连接。先用真实 BV 完整跑通 `node dist/media-check.js BV1dz421v794`，确认有 PCM 输出再把代理当作可用方案。代理本身也可能被 B 站拦截，不能保证某一供应商或地区一定有效。
+
 ## 排错与更新
 
 - **Discord 显示“应用程序未响应”**：看 Bot 终端是否仍在运行，再运行 `/diagnostics`。指令会先确认收到请求，然后再解析 Bilibili；如果是网络或语音连接问题，稍后会返回具体错误。首次解析可能较慢。

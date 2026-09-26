@@ -5,7 +5,7 @@ import { MediaResolver } from './media.js';
 const input = process.argv[2] || 'BV1xx411c7mD';
 const seekSeconds = Number(process.argv[3] || '0');
 if (!Number.isInteger(seekSeconds) || seekSeconds < 0) throw new Error('可选进度须为非负整数秒。');
-const resolver = new MediaResolver(process.env.YTDLP_PATH || 'yt-dlp', process.env.YTDLP_COOKIES_PATH);
+const resolver = new MediaResolver(process.env.YTDLP_PATH || 'yt-dlp', process.env.YTDLP_COOKIES_PATH, process.env.YTDLP_BILIBILI_CONFIG_PATH);
 const track = await resolver.resolve(input);
 console.log(`解析：${track.title} (${track.source}: ${track.id})`);
 const stream = await resolver.stream(track);

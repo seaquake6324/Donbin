@@ -60,9 +60,11 @@ export async function runProcess(command: string, args: string[], timeoutMs = 30
 
 export class MediaResolver {
   private recent = new Map<string, { stream: StreamInfo; at: number }>();
-  constructor(private readonly binary: string, private readonly cookies?: string) {}
+  constructor(private readonly binary: string, private readonly cookies?: string, private readonly bilibiliConfig?: string) {}
   private args(): string[] { return this.cookies ? ['--cookies', this.cookies] : []; }
-  private extractArgs(url: string): string[] { return ['--no-playlist', '--skip-download', '--no-warnings', '--js-runtimes', `node:${process.execPath}`, '-f', 'bestaudio/best', '-J', ...this.args(), url]; }
+  private extractArgs(source: MediaSource, url: string): string[] {
+    return ['--no-playlist', '--skip-download', '--no-warnings', '--js-runtimes', `node:${process.execPath}`, '-f', 'bestaudio/best', '-J', ...this.args(), ...(source === 'bilibili' && this.bilibiliConfig ? ['--config-locations', this.bilibiliConfig] : []), url];
+  }
   private key(track: Pick<Track, 'source' | 'id'>): string { return `${track.source}:${track.id}`; }
   private remember(key: string, stream: StreamInfo): void {
     this.recent.set(key, { stream, at: Date.now() });
@@ -75,7 +77,7 @@ export class MediaResolver {
   }
   async resolve(input: string, requestedBy?: string): Promise<Track> {
     const media = parseMediaInput(input);
-    const raw = await runProcess(this.binary, this.extractArgs(media.url), 45_000);
+    const raw = await runProcess(this.binary, this.extractArgs(media.source, media.url), 45_000);
     const data = JSON.parse(raw) as MediaData;
     if (!data.title) throw new Error('视频平台没有返回标题。');
     const stream = this.streamFrom(data);
@@ -88,7 +90,7 @@ export class MediaResolver {
     const cached = this.recent.get(key);
     this.recent.delete(key);
     if (cached && Date.now() - cached.at < 60_000) return cached.stream;
-    const raw = await runProcess(this.binary, this.extractArgs(track.url), 45_000);
+    const raw = await runProcess(this.binary, this.extractArgs(track.source, track.url), 45_000);
     const info = this.streamFrom(JSON.parse(raw) as MediaData);
     if (!info) throw new Error('无法取得有效音频 URL。');
     return info;
@@ -97,7 +99,7 @@ export class MediaResolver {
     const key = this.key(track);
     const cached = this.recent.get(key);
     if (cached && Date.now() - cached.at < 45_000) return;
-    const raw = await runProcess(this.binary, this.extractArgs(track.url), 45_000, 4_000_000, signal);
+    const raw = await runProcess(this.binary, this.extractArgs(track.source, track.url), 45_000, 4_000_000, signal);
     if (signal?.aborted) return;
     const info = this.streamFrom(JSON.parse(raw) as MediaData);
     if (info) this.remember(key, info);
