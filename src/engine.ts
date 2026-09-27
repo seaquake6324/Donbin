@@ -121,7 +121,7 @@ export class MusicEngine {
       if (token !== this.generation) return;
       const headers = { 'User-Agent': 'Mozilla/5.0', ...(track.source === 'bilibili' ? { Referer: 'https://www.bilibili.com/' } : {}), ...stream.headers };
       const headerArg = Object.entries(headers).map(([k, v]) => `${k}: ${v}\r\n`).join('');
-      const ffmpeg = spawn(this.ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-nostdin', '-rw_timeout', '15000000', '-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_on_network_error', '1', '-reconnect_delay_max', '5', '-headers', headerArg, ...(seekSeconds > 0 ? ['-ss', String(seekSeconds)] : []), '-i', stream.url, '-vn', '-ac', '2', '-ar', '48000', '-f', 's16le', 'pipe:1'], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
+      const ffmpeg = spawn(this.ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-nostdin', '-rw_timeout', '15000000', '-reconnect', '1', '-reconnect_streamed', '1', '-reconnect_on_network_error', '1', '-reconnect_delay_max', '5', '-headers', headerArg, ...(seekSeconds > 0 ? ['-ss', String(seekSeconds)] : []), '-i', stream.url, '-vn', '-ac', '2', '-ar', '48000', '-f', 's16le', 'pipe:1'], { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], ...(stream.proxy ? { env: { ...process.env, http_proxy: stream.proxy, https_proxy: stream.proxy } } : {}) });
       if (token !== this.generation) { ffmpeg.kill(); return; }
       this.ffmpeg = ffmpeg;
       let stderr = '';

@@ -18,7 +18,7 @@ const config = {
 if (!Number.isInteger(config.webPort) || config.webPort < 1 || config.webPort > 65535) throw new Error('WEB_PORT 必须是 1–65535。');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 const store = new PlaylistStore(process.env.DATABASE_PATH || './data/music.sqlite', config.adminId);
-const media = new MediaResolver(config.ytdlp, config.cookies, process.env.YTDLP_BILIBILI_CONFIG_PATH);
+const media = new MediaResolver(config.ytdlp, config.cookies, process.env.YTDLP_BILIBILI_CONFIG_PATH, process.env.YTDLP_YOUTUBE_CONFIG_PATH);
 let engine: MusicEngine;
 let webServer: ReturnType<typeof startWeb> | undefined;
 

@@ -122,14 +122,16 @@ Compose 只把网页映射到宿主机的 `127.0.0.1:3000`。要从外网访问�
 
 一台持续在线的 Linux 云服务器适合同时运行 Bot 和网页，通常能避开家用网络断线及电脑休眠。选机房时重点看它到 **Discord 语音的 UDP 连接**和 **Bilibili、YouTube 的访问速度**；CPU/内存需求相对小。先在服务器运行 `node dist/media-check.js BV1xx411c7mD 60` 和 `node dist/media-check.js 'https://www.youtube.com/watch?v=jNQXAC9IVRw'`，确认都能输出 PCM，再启动 Bot 并用 `/diagnostics` 检查语音。网页只监听 `127.0.0.1:3000`，公网入口请通过有 HTTPS 的反向代理或正式 Cloudflare Tunnel 转发，并设置 `WEB_PUBLIC_URL` 与 Discord OAuth 回调。将 `data/music.sqlite` 和 `.env` 安全复制过去，前者是歌单与上次语音频道记录，后者含 Bot Token、Client Secret 和会话密钥。迁移期间别让本机和云端同时使用同一个 Bot Token 运行。
 
-如果云机房请求 Bilibili 返回 HTTP 412，先在**那台云服务器上**运行 `media-check` 确认，不要仅凭机房国家判断能否访问。可以给 Bilibili 的 yt-dlp 解析单独配置一个可用的 HTTP(S) 或 SOCKS5 代理：在 Bot 用户可读、其他用户不可读的文件中写入 `--proxy http://用户:密码@代理主机:端口`，例如 `/var/lib/donbin/bilibili-yt-dlp.conf`（Linux 权限 `600`）；再在 `.env` 填 `YTDLP_BILIBILI_CONFIG_PATH=/var/lib/donbin/bilibili-yt-dlp.conf` 并重启。不要把含凭据的配置文件提交到 Git。此设置只影响 Bilibili 的 yt-dlp 请求，YouTube 和 FFmpeg 音频流仍直接连接。先用真实 BV 完整跑通 `node dist/media-check.js BV1dz421v794`，确认有 PCM 输出再把代理当作可用方案。代理本身也可能被 B 站拦截，不能保证某一供应商或地区一定有效。
+如果云机房请求 Bilibili 返回 HTTP 412，先在**那台云服务器上**运行 `media-check` 确认，不要仅凭机房国家判断能否访问。可以给 Bilibili 的 yt-dlp 解析单独配置一个可用的 HTTP(S) 或 SOCKS5 代理：在 Bot 用户可读、其他用户不可读的文件中写入 `--proxy http://用户:密码@代理主机:端口`，例如 `/var/lib/donbin/bilibili-yt-dlp.conf`（Linux 权限 `600`）；再在 `.env` 填 `YTDLP_BILIBILI_CONFIG_PATH=/var/lib/donbin/bilibili-yt-dlp.conf` 并重启。不要把含凭据的配置文件提交到 Git。先用真实 BV 完整跑通 `node dist/media-check.js BV1dz421v794`，确认有 PCM 输出再把代理当作可用方案。代理本身也可能超时或被 B 站拦截；若代理地址含 `_session-` 加八位字母数字会话 ID，Bot 在 504 或超时后会自动换一次会话重试。其他代理请按服务商说明处理。
+
+YouTube 通常走云服务器直连。如果某个视频触发 “Sign in to confirm you’re not a bot”，可以在 `.env` 设置 `YTDLP_YOUTUBE_CONFIG_PATH` 指向同类私密 yt-dlp 代理配置；Bot 只在遇到这条错误时通过代理重试。可以与 Bilibili 共用配置文件，文件中须单独一行写 `--proxy http://...`。该视频的 FFmpeg 音频流也会经过代理，否则 YouTube 可能拒绝来自不同 IP 的音频请求。设置后要对出错的原视频运行 `media-check`，确认音频能解码。住宅代理消耗流量，且不保证每个视频都可用。
 
 ## 排错与更新
 
 - **Discord 显示“应用程序未响应”**：看 Bot 终端是否仍在运行，再运行 `/diagnostics`。指令会先确认收到请求，然后再解析 Bilibili；如果是网络或语音连接问题，稍后会返回具体错误。首次解析可能较慢。
 - **Bot 不进语音**：确认你当前频道或默认频道允许 Bot **View Channel、Connect、Speak**。`/diagnostics` 会显示 Voice 状态和最近错误。
 - **声音卡顿**：播放器启动前预缓冲约 1 秒 PCM，FFmpeg 会尝试重连网络。仍卡顿时检查部署机器到 Bilibili 和 Discord 的连接，更新 yt-dlp，试其他视频。缓冲不能修复持续带宽不足。
-- **YouTube 解析失败**：先运行下面的 YouTube `media-check`；检查 Node.js 22+、yt-dlp 是否含 EJS。详见 [yt-dlp 官方 EJS 安装说明](https://github.com/yt-dlp/yt-dlp/wiki/EJS)。部分视频会因地区、登录要求或平台限制无法解析。
+- **YouTube 解析失败**：先运行下面的 YouTube `media-check`；检查 Node.js 22+、yt-dlp 是否含 EJS。详见 [yt-dlp 官方 EJS 安装说明](https://github.com/yt-dlp/yt-dlp/wiki/EJS)。出现机器人验证时可按上文配置代理重试；部分视频仍会因地区、登录要求或平台限制无法解析。不要把个人 Google 账号的 cookies 放到公开服务器上。
 - **起播等待**：首次点播需要向平台解析临时音频地址，无法保证瞬间开始。Bot 会复用刚解析出的地址，并在歌曲结束前约 30 秒预解析下一首。换云服务器是否更快取决于机房到视频平台的网络，请在目标服务器运行 `media-check` 实测。
 - **网页打不开或登录失败**：检查 Bot 是否在运行、`WEB_PORT` 是否被占用、`DISCORD_CLIENT_SECRET` 是否已填写、`WEB_PUBLIC_URL` 与 Developer Portal OAuth2 Redirects 是否完全一致。外网地址还需要 HTTPS 入口在运行。
 - **命令没出现**：检查 Client ID、Guild ID、邀请链接的 `applications.commands`，然后重新运行 `pnpm run register`。
