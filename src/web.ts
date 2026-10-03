@@ -6,6 +6,7 @@ import { parseMediaInput, type MediaResolver } from './media.js';
 import type { PlaylistStore } from './playlists.js';
 
 const page = readFileSync(new URL('../public/index.html', import.meta.url));
+const favicon = readFileSync(new URL('../public/favicon.svg', import.meta.url));
 type WebIdentity = { id: string; username: string; avatarUrl?: string };
 type WebOptions = { engine: MusicEngine; media: MediaResolver; store: PlaylistStore; host: string; port: number;
   clientId: string; clientSecret?: string; publicUrl: string; sessionSecret: string; adminId: string;
@@ -66,6 +67,10 @@ export function startWeb(options: WebOptions) {
     try {
       const requestUrl = new URL(req.url || '/', 'http://localhost');
       const path = requestUrl.pathname;
+      if (req.method === 'GET' && path === '/favicon.svg') {
+        res.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' });
+        res.end(favicon); return;
+      }
       if (req.method === 'GET' && path === '/') {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'self'; img-src 'self' https://cdn.discordapp.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; base-uri 'none'; form-action 'self'" });
         res.end(page); return;
