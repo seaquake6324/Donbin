@@ -211,8 +211,9 @@ function songRow(song,index) {
 function render() {
   authState = 'authenticated'; $('login').hidden = true; $('workspace').hidden = false; $('loginError').hidden = true;
   $('username').textContent = state.currentUser.username;
-  if (state.currentUser.avatarUrl && $('avatar').firstElementChild?.src !== state.currentUser.avatarUrl) { const img = document.createElement('img'); img.src = state.currentUser.avatarUrl; img.alt = ''; $('avatar').replaceChildren(img); }
-  else $('avatar').textContent = Array.from(state.currentUser.username || '听')[0];
+  if (state.currentUser.avatarUrl) {
+    if ($('avatar').firstElementChild?.src !== state.currentUser.avatarUrl) { const img = document.createElement('img'); img.src = state.currentUser.avatarUrl; img.alt = ''; $('avatar').replaceChildren(img); }
+  } else $('avatar').textContent = Array.from(state.currentUser.username || '听')[0];
   $('adminButton').hidden = !state.currentUser.isAdmin; $('unreadCount').textContent = String(state.unreadCount || 0);
   $('connection').textContent = '控制台已同步'; $('connection').parentElement.className = 'header-status online';
   $('syncStatus').textContent = '与语音频道同步';

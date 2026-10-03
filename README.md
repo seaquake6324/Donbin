@@ -118,6 +118,51 @@ docker compose logs -f music-bot
 
 Compose 只把网页映射到宿主机的 `127.0.0.1:3000`。要从外网访问，在宿主机运行上面的 `cloudflared` 命令。`./data` 挂载到容器内，重建容器不会删除歌单。Linux 上需要确保容器的 `node` 用户能写入 `data` 目录。
 
+## Windows 本机长期运行，网站保留外网访问
+
+电脑需要保持开机、联网；休眠或关机会同时停掉音乐和网站。不需要 Docker。
+
+1. 安装 Node.js 22.13+，准备 FFmpeg、yt-dlp，以及从 [Caddy 官网](https://caddyserver.com/download) 下载的 Windows 版。可将可执行文件放在 `.tools/` 下，分别命名为 `node.exe`、`ffmpeg.exe`、`yt-dlp.exe`、`caddy.exe`。
+2. 在 `.env` 设置以下几项，其他 Discord 配置沿用原来的值：
+
+   ```dotenv
+   WEB_HOST=127.0.0.1
+   WEB_PORT=3000
+   WEB_PUBLIC_URL=https://msc.seaquake.dev
+   DATABASE_PATH=./data/music.sqlite
+   FFMPEG_PATH=./.tools/ffmpeg.exe
+   YTDLP_PATH=./.tools/yt-dlp.exe
+   ```
+
+3. 创建 `data/Caddyfile.local`。这里的域名要换成自己的，并在 Discord OAuth2 Redirects 中登记 `https://域名/auth/discord/callback`：
+
+   ```caddyfile
+   {
+       storage file_system {
+           root ./data/caddy
+       }
+   }
+   msc.seaquake.dev {
+       encode gzip
+       reverse_proxy 127.0.0.1:3000
+   }
+   ```
+
+4. 将域名的 A 记录指向家庭公网 IPv4。路由器中给电脑固定局域网地址，将 **TCP 80 → 电脑:80、TCP 443 → 电脑:443**。不要转发 3000；不用添加 UDP 或修改 Minecraft 的 25565。公网 IP 变化后需要更新 DNS；有 CGNAT 或运营商封锁入站端口时，这种方式不能直接使用。
+5. 在管理员 PowerShell 中运行一次 `powershell -ExecutionPolicy Bypass -File .\scripts\allow-local-https.ps1`，允许 Caddy 的入站连接。
+6. 编译后启动。在项目目录运行：
+
+   ```powershell
+   pnpm install
+   pnpm run build
+   powershell -ExecutionPolicy Bypass -File .\scripts\start-local.ps1
+   powershell -ExecutionPolicy Bypass -File .\scripts\install-local-autostart.ps1
+   ```
+
+最后一条让当前 Windows 用户登录后自动启动。后台同时运行 Bot 和 Caddy，进程退出时会重启。日志位于 `data/local-bot.stdout.log`、`data/local-bot.stderr.log` 和 `data/local-https.stderr.log`。停止用 `powershell -ExecutionPolicy Bypass -File .\scripts\stop-local.ps1`；更新前先停止，更新并编译后再启动。
+
+从云端搬回来时，先停止云端 Bot，再通过 SQLite backup 获取完整数据库（运行中的 WAL 文件不能忽略），放到本机的 `data/music.sqlite`。同时保留原来的 `.env`、会话密钥和数据库备份。两个实例不要同时使用同一个 Bot Token。本机直连媒体通过测试后可以清除代理配置路径。确认外网登录、歌单、语音播放都正常后再删除云实例；关机或停止服务不会停止云实例计费。
+
 ## 搬到云服务器
 
 一台持续在线的 Linux 云服务器适合同时运行 Bot 和网页，通常能避开家用网络断线及电脑休眠。选机房时重点看它到 **Discord 语音的 UDP 连接**和 **Bilibili、YouTube 的访问速度**；CPU/内存需求相对小。先在服务器运行 `node dist/media-check.js BV1xx411c7mD 60` 和 `node dist/media-check.js 'https://www.youtube.com/watch?v=jNQXAC9IVRw'`，确认都能输出 PCM，再启动 Bot 并用 `/diagnostics` 检查语音。网页只监听 `127.0.0.1:3000`，公网入口请通过有 HTTPS 的反向代理或正式 Cloudflare Tunnel 转发，并设置 `WEB_PUBLIC_URL` 与 Discord OAuth 回调。将 `data/music.sqlite` 和 `.env` 安全复制过去，前者是歌单与上次语音频道记录，后者含 Bot Token、Client Secret 和会话密钥。迁移期间别让本机和云端同时使用同一个 Bot Token 运行。
